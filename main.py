@@ -74,20 +74,23 @@ class AddressBook(UserDict):
         for user in self.data:
             userr = self.find(user) 
             nam = userr.name.value
-            bir = userr.birthday.value
-            bir = dtdt.strftime(bir, "%Y,%m,%d")
-            bir = str(tdate.year)+bir[4:]
-            bir = dtdt.strptime(bir, "%Y,%m,%d").date()
-            week_day = bir.isoweekday()
-            days_between = (bir - tdate).days
-            if 0<=days_between<7:
-                if week_day<6:
-                    birthdays.append({'name':nam, 'birthday':bir.strftime("%Y,%m,%d")})
-                else:
-                    if (bir+dt.timedelta(days=1)).weekday()==0:
-                        birthdays.append({'name':nam, 'birthday': (bir+dt.timedelta(days=1)).strftime("%Y,%m,%d")})
-                    elif (bir+dt.timedelta(days=2)).weekday()==0:
-                        birthdays.append({'name':nam, 'birthday': (bir+dt.timedelta(days=2)).strftime("%Y,%m,%d")})
+            try:
+                bir = userr.birthday.value
+                bir = dtdt.strftime(bir, "%Y,%m,%d")
+                bir = str(tdate.year)+bir[4:]
+                bir = dtdt.strptime(bir, "%Y,%m,%d").date()
+                week_day = bir.isoweekday()
+                days_between = (bir - tdate).days
+                if 0<=days_between<7:
+                    if week_day<6:
+                        birthdays.append({'name':nam, 'birthday':bir.strftime("%Y,%m,%d")})
+                    else:
+                        if (bir+dt.timedelta(days=1)).weekday()==0:
+                            birthdays.append({'name':nam, 'birthday': (bir+dt.timedelta(days=1)).strftime("%Y,%m,%d")})
+                        elif (bir+dt.timedelta(days=2)).weekday()==0:
+                            birthdays.append({'name':nam, 'birthday': (bir+dt.timedelta(days=2)).strftime("%Y,%m,%d")})
+            except Exception:
+                continue
         return birthdays           
 
 def input_error(func):
@@ -123,17 +126,14 @@ def add_contact(args, book: AddressBook):
 
 @input_error
 def change_contact(args, book: AddressBook):
-    name, phone, *_ = args
+    name, old_phone, new_phone,  *_ = args
     record = book.find(name)
     message = "Contact updated."
     if record is None:
         return "Contact not found"
     else:
-        book.delete(name)
-        record = Record(name)
-        book.add_record(record)
-    if phone:
-        record.add_phone(phone)
+        record.remove_phone(old_phone)
+        record.add_phone(new_phone)
     return message
 
 @input_error
